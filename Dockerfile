@@ -4,6 +4,7 @@ FROM ubuntu:24.04 AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
+    ca-certificates \
     git \
     gperf \
     zlib1g-dev \
@@ -31,6 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /src/build/telegram-bot-api /usr/local/bin/telegram-bot-api
+
+RUN mkdir -p /data
 
 # Railway injects PORT; default to 8081 for local use.
 EXPOSE 8081
