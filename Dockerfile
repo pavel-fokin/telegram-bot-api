@@ -47,4 +47,4 @@ CMD telegram-bot-api \
     --http-ip-address=:: \
     --dir=/data \
     --local \
-    --verbosity=2
+    --verbosity=1
