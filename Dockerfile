@@ -1,5 +1,5 @@
-# ─── Build stage ─────────────────────────────────────────────────────────────
-FROM ubuntu:24.04 AS builder
+# ─── Build stage (telegram-bot-api C++ binary) ───────────────────────────────
+FROM ubuntu:24.04 AS tgbotapi-builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -23,6 +23,18 @@ WORKDIR /src/build
 RUN cmake -DCMAKE_BUILD_TYPE=Release .. \
     && cmake --build . --target telegram-bot-api -j$(nproc)
 
+# ─── Build stage (telegram-file-server Go binary) ────────────────────────────
+FROM golang:1.24-bookworm AS fileserver-builder
+
+WORKDIR /src
+
+COPY go.mod ./
+RUN go mod download
+
+COPY cmd/ ./cmd/
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /telegram-file-server ./cmd/telegram-file-server
+
 # ─── Runtime stage ────────────────────────────────────────────────────────────
 FROM ubuntu:24.04
 
@@ -31,20 +43,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /src/build/telegram-bot-api /usr/local/bin/telegram-bot-api
+COPY --from=tgbotapi-builder /src/build/telegram-bot-api /usr/local/bin/telegram-bot-api
+COPY --from=fileserver-builder /telegram-file-server /usr/local/bin/telegram-file-server
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN mkdir -p /data
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh && mkdir -p /data
 
-# Railway injects PORT; default to 8081 for local use.
+# telegram-bot-api: 8081 (Railway injects PORT; default 8081 for local use)
+# telegram-file-server: 8082
 EXPOSE 8081
+EXPOSE 8082
 
-# TELEGRAM_API_ID and TELEGRAM_API_HASH are required.
-# TELEGRAM_BOT_TOKEN is not used by the server itself — bots register via HTTP.
-CMD telegram-bot-api \
-    --api-id="${TELEGRAM_API_ID}" \
-    --api-hash="${TELEGRAM_API_HASH}" \
-    --http-port="${PORT:-8081}" \
-    --http-ip-address=:: \
-    --dir=/data \
-    --local \
-    --verbosity=1
+# TELEGRAM_API_ID and TELEGRAM_API_HASH are required for telegram-bot-api.
+# TELEGRAM_FILE_SERVER_TOKEN is required for telegram-file-server.
+CMD ["docker-entrypoint.sh"]
