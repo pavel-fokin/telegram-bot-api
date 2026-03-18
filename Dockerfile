@@ -44,7 +44,7 @@ CMD telegram-bot-api \
     --api-id="${TELEGRAM_API_ID}" \
     --api-hash="${TELEGRAM_API_HASH}" \
     --http-port="${PORT:-8081}" \
-    --http-ip-address=0.0.0.0 \
+    --http-ip-address=:: \
     --dir=/data \
     --local
 
