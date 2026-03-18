@@ -24,7 +24,7 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release .. \
     && cmake --build . --target telegram-bot-api -j$(nproc)
 
 # ─── Build stage (telegram-file-server Go binary) ────────────────────────────
-FROM golang:1.24-bookworm AS fileserver-builder
+FROM golang:1.26-bookworm AS fileserver-builder
 
 WORKDIR /src
 
