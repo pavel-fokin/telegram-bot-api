@@ -44,4 +44,5 @@ run-bot-api: docker-build
 run-file-server:
 	TELEGRAM_FILE_SERVER_TOKEN=$(TELEGRAM_FILE_SERVER_TOKEN) \
 	TELEGRAM_FILE_SERVER_ROOT=$(DATA_DIR) \
+	TELEGRAM_FILE_SERVER_PORT=$(TELEGRAM_FILE_SERVER_PORT) \
 	go run ./cmd/telegram-file-server

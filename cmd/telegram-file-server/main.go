@@ -23,7 +23,7 @@ func main() {
 		root = "/data"
 	}
 
-	port := os.Getenv("PORT")
+	port := os.Getenv("TELEGRAM_FILE_SERVER_PORT")
 	if port == "" {
 		port = "8082"
 	}
